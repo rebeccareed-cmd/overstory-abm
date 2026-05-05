@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Overstory — ABM Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+@font-face {
+  font-family: 'Gilroy';
+  src: url('https://app.overstory.com/assets/font-u1SmZg41.woff2') format('woff2');
+  font-weight: 100 900; font-style: normal; font-display: swap;
+}
+:root {
+  --s0:#ffffff; --s1:#f8fcfb; --s2:#f3f7f6; --s3:#f1f5f4; --s4:#ecf0ef;
+  --sage2:#e8eded; --sage3:#d3dcda; --sage5:#76928b; --sage6:#4f5f5b;
+  --sage7:#384d49; --sage8:#2b3d3a; --sage9:#191a19;
+  --t0:#ebfffb; --t1:#afecdf; --t2:#7cdac5; --t3:#55c7ae;
+  --t4:#38b499; --t5:#25a187; --t6:#198f75; --t7:#117c65; --t8:#066450;
+  --g2:#e7e7e7; --g3:#c9c9c9; --g4:#b8b8b8; --g5:#909090;
+  --green0:#ebfff1; --green5:#1c8b3d;
+  --or0:#fff3eb; --or6:#e26d19;
+  --bl0:#ebf5ff; --bl6:#0e65b7;
+  --y3:#ffd266; --r0:#ffebeb; --r5:#dc1b1a;
+  --fd:'Gilroy','Montserrat',system-ui,sans-serif;
+  --fb:'Inter',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--fb);background:var(--s2);color:var(--sage9);}
+
+/* ── Nav ── */
+#nav{
+  background:var(--t8);height:56px;display:flex;align-items:center;
+  padding:0 32px;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+}
+.nav-brand{font-family:var(--fd);color:#fff;font-size:18px;font-weight:600;}
+.nav-sep{color:var(--t3);font-size:13px;margin-left:8px;}
+.nav-badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--y3);}
+.nav-right{display:flex;align-items:center;gap:14px;}
+.nav-ts{font-size:11px;color:var(--t3);}
+.btn-nav{background:none;border:1px solid var(--t5);color:#fff;border-radius:4px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--fb);}
+.btn-ghost-nav{background:none;border:none;color:var(--t3);font-size:12px;cursor:pointer;font-family:var(--fb);}
+
+/* ── Config ── */
+#config-wrap{max-width:560px;margin:48px auto;padding:0 24px;}
+.config-card{background:var(--s0);border:1px solid var(--sage2);border-radius:8px;padding:32px;}
+.config-title{font-family:var(--fd);font-size:22px;font-weight:600;color:var(--sage9);margin-bottom:6px;}
+.config-sub{font-size:13px;color:var(--sage6);margin-bottom:28px;line-height:1.7;}
+.field{margin-bottom:18px;}
+.field label{font-size:13px;font-weight:600;color:var(--sage9);display:block;margin-bottom:5px;}
+.field-hint{font-size:12px;color:var(--g5);margin-bottom:7px;line-height:1.5;}
+.field input{
+  width:100%;padding:10px 12px;border:1px solid var(--sage3);border-radius:8px;
+  font-size:13px;font-family:var(--fb);color:var(--sage9);outline:none;background:var(--s0);
+}
+.field input:focus{border-color:var(--t7);box-shadow:0 0 0 3px rgba(17,124,101,.12);}
+code{background:var(--s3);padding:1px 5px;border-radius:3px;font-size:11px;font-family:monospace;}
+.err{background:var(--r0);color:var(--r5);border-radius:4px;padding:10px 12px;font-size:13px;margin-bottom:16px;line-height:1.5;display:none;}
+.btn-primary{
+  background:var(--t7);color:#fff;border:none;border-radius:8px;
+  padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;
+  font-family:var(--fb);width:100%;margin-top:4px;
+}
+.btn-primary:hover{background:var(--t6);}
+.info-note{background:var(--t0);border:1px solid var(--t2);border-radius:8px;padding:14px;margin-top:16px;font-size:12px;color:var(--t8);line-height:1.6;}
+
+/* ── Dashboard ── */
+#main{padding:32px;}
+#load-err{background:var(--r0);color:var(--r5);border-radius:8px;padding:14px 16px;margin-bottom:24px;font-size:13px;line-height:1.6;display:none;}
+
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+.kpi-card{background:var(--s0);border:1px solid var(--sage2);border-radius:8px;padding:16px 24px;}
+.kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--g5);margin-bottom:6px;}
+.kpi-value{font-family:var(--fd);font-size:40px;font-weight:600;color:var(--sage9);line-height:1;}
+.kpi-sub{font-size:12px;color:var(--sage5);margin-top:4px;}
+
+/* Tabs */
+.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--g2);margin-bottom:24px;}
+.tab-btn{
+  background:none;border:none;cursor:pointer;padding:10px 18px;font-size:14px;
+  font-weight:400;color:var(--sage6);border-bottom:2px solid transparent;
+  margin-bottom:-1px;font-family:var(--fb);transition:color .15s;
+}
+.tab-btn.active{font-weight:600;color:var(--t7);border-bottom-color:var(--t7);}
+
+/* View toggle */
+.view-toggle{display:flex;gap:8px;margin-bottom:24px;align-items:center;}
+.view-label{font-size:13px;color:var(--sage6);font-weight:500;}
+.view-btn{
+  background:var(--s0);color:var(--sage6);border:1px solid var(--sage2);
+  border-radius:8px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);
+}
+.view-btn.active{background:var(--t7);color:#fff;border-color:var(--t7);}
+
+/* Two-col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+
+/* Panel */
+.panel{background:var(--s0);border:1px solid var(--sage2);border-radius:8px;padding:24px;}
+.panel-title{font-family:var(--fd);font-size:16px;font-weight:600;color:var(--sage9);margin-bottom:4px;}
+.panel-sub{font-size:12px;color:var(--g5);margin-bottom:12px;}
+
+/* Legend */
+.legend{display:flex;gap:16px;margin-bottom:12px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sage6);}
+.legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0;}
+
+/* Progress rows */
+.prog-row{margin-bottom:14px;cursor:pointer;}
+.prog-head{display:flex;justify-content:space-between;margin-bottom:4px;}
+.prog-head span:first-child{font-size:13px;color:var(--sage7);}
+.prog-head span:last-child{font-size:13px;font-weight:600;color:var(--sage9);}
+.prog-track{height:8px;background:var(--s4);border-radius:4px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:4px;transition:width .3s;}
+.panel-footer{border-top:1px solid var(--g2);padding-top:16px;margin-top:16px;}
+.btn-outline{
+  background:none;border:1px solid var(--sage2);border-radius:8px;
+  padding:7px 16px;font-size:13px;color:var(--t7);cursor:pointer;font-family:var(--fb);font-weight:500;
+}
+.btn-outline:hover{background:var(--s2);}
+
+/* Rank A list */
+.rank-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;}
+.rank-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;background:var(--s1);border-radius:4px;border:1px solid var(--sage2);
+}
+.rank-item-name{font-size:13px;font-weight:500;color:var(--sage9);}
+.rank-item-meta{font-size:11px;color:var(--g5);margin-top:2px;}
+.rank-item-right{display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:12px;}
+
+/* Badges */
+.badge{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:8px;white-space:nowrap;}
+.badge-hi{background:var(--t0);color:var(--t7);}
+.badge-aw{background:var(--bl0);color:var(--bl6);}
+.badge-cold{background:var(--s4);color:var(--g5);}
+.badge-rank{background:var(--s4);color:var(--sage6);}
+.badge-cust{background:var(--t0);color:var(--t7);}
+.badge-deal{background:var(--or0);color:var(--or6);}
+.badge-vp{background:var(--s4);color:var(--sage6);}
+.priority-hi{background:var(--r0);color:var(--r5);}
+.priority-md{background:var(--or0);color:var(--or6);}
+.badge-type{background:var(--t0);color:var(--t7);}
+
+/* HS link */
+.hs-link{
+  font-size:12px;color:var(--t7);text-decoration:none;font-weight:500;
+  padding:6px 12px;border:1px solid var(--t2);border-radius:4px;white-space:nowrap;
+}
+.hs-link:hover{background:var(--t0);}
+
+/* AI */
+.ai-empty{text-align:center;padding:48px 24px;}
+.ai-empty-title{font-family:var(--fd);font-size:18px;color:var(--sage9);margin-bottom:12px;}
+.ai-empty-sub{font-size:14px;color:var(--sage6);max-width:480px;margin:0 auto 32px;line-height:1.6;}
+.ai-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+.ai-header-title{font-family:var(--fd);font-size:18px;font-weight:600;color:var(--sage9);}
+.ai-header-sub{font-size:12px;color:var(--g5);margin-top:2px;}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.ai-card{background:var(--s0);border:1px solid var(--sage2);border-radius:8px;padding:20px;}
+.ai-card-title{font-size:14px;font-weight:600;color:var(--sage9);margin-bottom:8px;}
+.ai-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.ai-rationale{font-size:12px;color:var(--sage6);margin-bottom:10px;line-height:1.6;}
+.ai-action-box{background:var(--s2);border-radius:4px;padding:10px 12px;margin-bottom:10px;}
+.ai-action-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--g5);margin-bottom:4px;}
+.ai-action-text{font-size:12px;color:var(--sage7);line-height:1.5;}
+.ai-accts{display:flex;flex-wrap:wrap;gap:4px;}
+.ai-acct-pill{font-size:11px;background:var(--t0);color:var(--t8);padding:2px 8px;border-radius:10px;font-weight:500;}
+.btn-sm{background:none;border:1px solid var(--sage2);border-radius:8px;padding:7px 14px;font-size:13px;color:var(--sage6);cursor:pointer;font-family:var(--fb);}
+
+/* Info callout */
+.info-callout{background:var(--bl0);border-radius:4px;padding:10px 12px;font-size:12px;color:var(--bl6);margin-top:12px;line-height:1.5;}
+
+/* Loading */
+.loading-msg{color:var(--g4);font-size:13px;text-align:center;padding:40px 0;}
+
+/* Drawer */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:300;display:none;}
+#drawer{
+  position:fixed;top:0;right:0;bottom:0;width:460px;
+  background:var(--s0);box-shadow:-4px 0 20px rgba(0,0,0,.12);
+  z-index:400;display:none;flex-direction:column;
+}
+.drawer-head{
+  padding:20px 28px;border-bottom:1px solid var(--g2);
+  display:flex;justify-content:space-between;align-items:flex-start;
+  position:sticky;top:0;background:var(--s0);z-index:1;
+}
+.drawer-title{font-family:var(--fd);font-size:16px;font-weight:600;color:var(--sage9);}
+.drawer-count{font-size:12px;color:var(--g5);margin-top:2px;}
+.drawer-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--g5);padding:4px;}
+.drawer-body{padding:12px 28px;overflow-y:auto;flex:1;}
+.drawer-row{
+  padding:12px 0;border-bottom:1px solid var(--g2);
+  display:flex;justify-content:space-between;align-items:flex-start;
+}
+.drawer-name{font-size:13px;font-weight:600;color:var(--sage9);margin-bottom:3px;}
+.drawer-job{font-size:12px;color:var(--sage6);margin-bottom:4px;}
+.drawer-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:3px;}
+.drawer-meta{font-size:11px;color:var(--g5);}
+.drawer-left{flex:1;}
+.drawer-empty{color:var(--g5);font-size:13px;text-align:center;padding-top:40px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Nav -->
+  <div id="nav">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#38b499"/><path d="M8 16 Q12 6 16 16" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M9.5 13 Q12 9 14.5 13" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/></svg>
+      <span class="nav-brand">Overstory</span>
+      <span class="nav-sep">/ ABM Intelligence</span>
+    </div>
+    <div class="nav-right">
+      <span class="nav-ts" id="nav-ts"></span>
+      <button class="btn-nav" id="btn-refresh" onclick="refreshData()" style="display:none;">↻ Refresh</button>
+      <button class="btn-ghost-nav" id="btn-cfg" onclick="showConfig()" style="display:none;">⚙ Config</button>
+      <span class="nav-badge">ABM Intelligence</span>
+    </div>
+  </div>
+
+  <!-- Config screen -->
+  <div id="config-wrap">
+    <div class="config-card">
+      <div class="config-title">Connect your Google Sheet</div>
+      <div class="config-sub">
+        You need the Apps Script web app URL and token from <strong>ABM_Dashboard_Script.gs</strong>.
+        If you haven't deployed the script yet, do that first — it takes about 15 minutes.
+      </div>
+      <div class="field">
+        <label>Apps Script web app URL</label>
+        <div class="field-hint">
+          Apps Script → Deploy → Manage deployments → copy the Web App URL.<br>
+          Looks like: <code>https://script.google.com/macros/s/ABC.../exec</code>
+        </div>
+        <input type="text" id="inp-url" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+      <div class="field">
+        <label>Secret token</label>
+        <div class="field-hint">The value you set as <code>SECRET_TOKEN</code> in the script.</div>
+        <input type="text" id="inp-token" placeholder="overstory-abm-2026" />
+      </div>
+      <div class="err" id="cfg-err"></div>
+      <button class="btn-primary" onclick="saveConfig()">Load Dashboard →</button>
+      <div class="info-note">
+        <strong>Saved in your browser only.</strong> Anyone opening this on a different device sees
+        this screen once, then it remembers. Reset anytime with ⚙ Config in the nav.
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" style="display:none;">
+    <div id="main">
+
+      <div class="err" id="load-err"></div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">High Intent Accounts</div>
+          <div class="kpi-value" id="kpi-acct-hi">—</div>
+          <div class="kpi-sub">Latest snapshot</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Awareness Accounts</div>
+          <div class="kpi-value" id="kpi-acct-aw">—</div>
+          <div class="kpi-sub">Latest snapshot</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Execs — High Intent</div>
+          <div class="kpi-value" id="kpi-cont-hi">—</div>
+          <div class="kpi-sub">VP / C-Suite</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Execs — Awareness</div>
+          <div class="kpi-value" id="kpi-cont-aw">—</div>
+          <div class="kpi-sub">VP / C-Suite</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('trends')">L6M Trends</button>
+        <button class="tab-btn" onclick="switchTab('gtm')">Rank Breakdown</button>
+        <button class="tab-btn" onclick="switchTab('priority')">AI Prioritization ✦</button>
+      </div>
+
+      <!-- View toggle (hidden on priority tab) -->
+      <div class="view-toggle" id="view-toggle">
+        <span class="view-label">View:</span>
+        <button class="view-btn active" onclick="switchView('accounts')">Target Accounts</button>
+        <button class="view-btn" onclick="switchView('execs')">Exec Contacts</button>
+      </div>
+
+      <!-- TRENDS tab -->
+      <div id="tab-trends" class="two-col">
+        <div class="panel">
+          <div class="panel-title" id="trend-title">Target Accounts — L6M</div>
+          <div class="panel-sub">Click a bar to see who's behind the count</div>
+          <div class="legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#117c65;"></span>High Intent</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#7cdac5;"></span>Awareness</span>
+          </div>
+          <div class="chart-wrap" style="overflow-x:auto;">
+            <svg id="trend-svg" style="overflow:visible;font-family:var(--fb);display:block;"></svg>
+          </div>
+          <div class="info-callout" id="trend-note" style="display:none;">
+            Tracking begins May 2026 — historical backfill in progress
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Current Snapshot</div>
+          <div id="snapshot-bars" style="margin-top:4px;"></div>
+          <div class="panel-footer">
+            <button class="btn-outline" onclick="viewAllHighIntent()">View all High Intent →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GTM RANK tab -->
+      <div id="tab-gtm" class="two-col" style="display:none;">
+        <div class="panel">
+          <div class="panel-title">By GTM Rank</div>
+          <div class="panel-sub">Click any segment to drill in</div>
+          <div class="legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#117c65;"></span>High Intent</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#7cdac5;"></span>Awareness</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#b8cbc6;"></span>Cold</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <svg id="rank-svg" style="overflow:visible;font-family:var(--fb);display:block;"></svg>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Rank A — High Intent</div>
+          <div class="rank-list" id="rank-a-list">
+            <div class="loading-msg">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI PRIORITY tab -->
+      <div id="tab-priority" style="display:none;">
+        <div id="ai-loading" style="display:none;" class="panel ai-empty">
+          <div class="ai-empty-title" style="color:var(--t7);">Analyzing your live account data…</div>
+          <div class="panel-sub" style="margin-top:8px;">Claude is reviewing intent signals, GTM rank, and deal status</div>
+        </div>
+        <div id="ai-prompt" class="panel ai-empty">
+          <div class="ai-empty-title">AI-Powered Outreach Prioritization</div>
+          <div class="ai-empty-sub">
+            Claude reads your live sheet data and surfaces the highest-leverage outreach
+            opportunities — excluding customers and accounts with open qualified deals.
+          </div>
+          <button class="btn-primary" style="max-width:240px;margin:0 auto;" onclick="fetchAiRecs()">
+            Generate Recommendations
+          </button>
+        </div>
+        <div id="ai-results" style="display:none;">
+          <div class="ai-header">
+            <div>
+              <div class="ai-header-title">Outreach Prioritization</div>
+              <div class="ai-header-sub">Generated by Claude from live data · Excludes customers & open qualified deals</div>
+            </div>
+            <button class="btn-sm" onclick="fetchAiRecs()">↻ Refresh</button>
+          </div>
+          <div class="ai-grid" id="ai-grid"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Drawer -->
+  <div id="overlay" onclick="closeDrawer()"></div>
+  <div id="drawer">
+    <div class="drawer-head">
+      <div>
+        <div class="drawer-title" id="drawer-title"></div>
+        <div class="drawer-count" id="drawer-count"></div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let STATE = {
+  companies: [],
+  contacts: [],
+  activeTab: 'trends',
+  activeView: 'accounts',
+  aiRec: null,
+  config: null,
+};
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(function init() {
+  try {
+    const saved = localStorage.getItem('abm_config');
+    if (saved) {
+      STATE.config = JSON.parse(saved);
+      showDashboard();
+      loadData();
+      // Auto-refresh every 10 minutes
+      setInterval(loadData, 10 * 60 * 1000);
+    }
+  } catch(e) { /* start fresh */ }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+})();
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+function saveConfig() {
+  const url   = document.getElementById('inp-url').value.trim();
+  const token = document.getElementById('inp-token').value.trim();
+  const errEl = document.getElementById('cfg-err');
+  errEl.style.display = 'none';
+
+  if (!url)   { showErr(errEl, 'Please paste your Apps Script web app URL.'); return; }
+  if (!token) { showErr(errEl, 'Please enter your secret token.'); return; }
+  if (!url.includes('script.google.com')) {
+    showErr(errEl, 'That doesn\'t look like an Apps Script URL. It should start with https://script.google.com/macros/s/...');
+    return;
+  }
+
+  STATE.config = { scriptUrl: url, token };
+  try { localStorage.setItem('abm_config', JSON.stringify(STATE.config)); } catch(e) {}
+  STATE.aiRec = null;
+  showDashboard();
+  loadData();
+  setInterval(loadData, 10 * 60 * 1000);
+}
+
+function showConfig() {
+  STATE.config = null;
+  try { localStorage.removeItem('abm_config'); } catch(e) {}
+  document.getElementById('dashboard').style.display  = 'none';
+  document.getElementById('config-wrap').style.display = 'block';
+  document.getElementById('btn-refresh').style.display = 'none';
+  document.getElementById('btn-cfg').style.display     = 'none';
+}
+
+function showDashboard() {
+  document.getElementById('config-wrap').style.display = 'none';
+  document.getElementById('dashboard').style.display   = 'block';
+  document.getElementById('btn-refresh').style.display = 'inline-block';
+  document.getElementById('btn-cfg').style.display     = 'inline-block';
+}
+
+// ── DATA LOADING ──────────────────────────────────────────────────────────────
+async function loadData() {
+  if (!STATE.config) return;
+  const { scriptUrl, token } = STATE.config;
+  const base = `${scriptUrl}?token=${encodeURIComponent(token)}`;
+  const errEl = document.getElementById('load-err');
+  errEl.style.display = 'none';
+
+  try {
+    const [cRes, ctRes] = await Promise.all([
+      fetch(`${base}&sheet=companies`),
+      fetch(`${base}&sheet=contacts`),
+    ]);
+
+    if (!cRes.ok)  throw new Error(`Companies fetch failed (HTTP ${cRes.status}). Check your script URL.`);
+    if (!ctRes.ok) throw new Error(`Contacts fetch failed (HTTP ${ctRes.status}). Check your script URL.`);
+
+    const [cJson, ctJson] = await Promise.all([cRes.json(), ctRes.json()]);
+
+    if (cJson.error)  throw new Error(`Script error (Companies): ${cJson.error}`);
+    if (ctJson.error) throw new Error(`Script error (Contacts): ${ctJson.error}`);
+
+    STATE.companies = (cJson.data  || []).map(normalizeCompany);
+    STATE.contacts  = (ctJson.data || []).map(normalizeContact);
+
+    const now = new Date();
+    document.getElementById('nav-ts').textContent =
+      'Updated ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    render();
+  } catch(e) {
+    showErr(errEl, '<strong>Could not load data:</strong> ' + e.message +
+      '<br><span style="font-size:12px;">Check that your Apps Script is deployed and the token matches. Click ⚙ Config to re-enter settings.</span>');
+    errEl.style.display = 'block';
+  }
+}
+
+function refreshData() { loadData(); }
+
+// ── NORMALIZERS ───────────────────────────────────────────────────────────────
+function normalizeCompany(r) {
+  return {
+    id:           r['Company ID'] || '',
+    name:         r['Company name'] || r['Company Name'] || '',
+    owner:        r['Company Owner First Name'] || '',
+    type:         r['Type'] || '',
+    rank:         r['GTM Priority Rank'] || '',
+    intent:       r['Company Intent Level'] || 'Cold',
+    score:        parseInt(r['Company Score'] || '0', 10) || 0,
+    openDeals:    parseInt(r['Number of open deals'] || '0', 10) || 0,
+    qualDeals:    parseInt(r['# of Open Qualified Deals'] || '0', 10) || 0,
+    snapshotDate: r['Snapshot Date'] || '',
+    icp:          r['ICP Status'] || '',
+    targetAccount: r['Target Account'] === 'TRUE' || r['Target Account'] === 'true',
+  };
+}
+
+function normalizeContact(r) {
+  return {
+    id:           r['Contact ID'] || '',
+    name:         ((r['First Name'] || '') + ' ' + (r['Last Name'] || '')).trim(),
+    company:      r['Company Name'] || '',
+    companyId:    r['Company ID'] || '',
+    title:        r['Job Title'] || '',
+    titleGroup:   r['Title Grouping'] || '',
+    intent:       r['Contact Intent Level'] || 'Cold',
+    rank:         r['GTM Priority Rank'] || '',
+    targetAccount: r['Target Account'] === 'TRUE' || r['Target Account'] === 'true',
+    snapshotDate: r['Snapshot Date'] || '',
+  };
+}
+
+// ── DERIVED DATA ──────────────────────────────────────────────────────────────
+function latestOnly(rows) {
+  const map = {};
+  rows.forEach(r => {
+    if (!r.id) return;
+    if (!map[r.id] || r.snapshotDate > map[r.id].snapshotDate) map[r.id] = r;
+  });
+  return Object.values(map);
+}
+
+function getLatestCompanies() {
+  return latestOnly(STATE.companies.filter(c => c.targetAccount && c.icp === 'ICP_FIT'));
+}
+
+function getLatestContacts() {
+  return latestOnly(STATE.contacts.filter(c => c.targetAccount));
+}
+
+function parseMonthKey(d) {
+  if (!d) return null;
+  const dt = new Date(d);
+  if (isNaN(dt)) return null;
+  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+}
+
+function fmtMonth(key) {
+  const [y, m] = key.split('-');
+  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m,10)-1] + " '" + y.slice(2);
+}
+
+function buildTrends(rows) {
+  const by = {};
+  rows.forEach(r => {
+    const k = parseMonthKey(r.snapshotDate);
+    if (!k) return;
+    if (!by[k]) by[k] = { highIntent:0, awareness:0, cold:0 };
+    if (r.intent === 'High Intent') by[k].highIntent++;
+    else if (r.intent === 'Awareness') by[k].awareness++;
+    else by[k].cold++;
+  });
+  return Object.keys(by).sort().slice(-6).map(k => ({ month: fmtMonth(k), key: k, ...by[k] }));
+}
+
+function buildRankData(latest) {
+  return ['A','B','C','D'].map(rank => {
+    const g = latest.filter(c => c.rank === rank);
+    return {
+      rank,
+      highIntent: g.filter(c => c.intent === 'High Intent').length,
+      awareness:  g.filter(c => c.intent === 'Awareness').length,
+      cold:       g.filter(c => c.intent === 'Cold').length,
+    };
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  const latestC  = getLatestCompanies();
+  const latestCt = getLatestContacts();
+
+  const kpi = {
+    acctHI: latestC.filter(c => c.intent === 'High Intent').length,
+    acctAw: latestC.filter(c => c.intent === 'Awareness').length,
+    contHI: latestCt.filter(c => c.intent === 'High Intent').length,
+    contAw: latestCt.filter(c => c.intent === 'Awareness').length,
+  };
+
+  document.getElementById('kpi-acct-hi').textContent = kpi.acctHI;
+  document.getElementById('kpi-acct-aw').textContent = kpi.acctAw;
+  document.getElementById('kpi-cont-hi').textContent = kpi.contHI;
+  document.getElementById('kpi-cont-aw').textContent = kpi.contAw;
+
+  renderTrendChart(latestC, latestCt);
+  renderSnapshotBars(latestC, latestCt, kpi);
+  renderRankChart(latestC);
+  renderRankAList(latestC);
+}
+
+// ── TREND CHART (SVG) ─────────────────────────────────────────────────────────
+function renderTrendChart(latestC, latestCt) {
+  const isAccounts = STATE.activeView === 'accounts';
+  document.getElementById('trend-title').textContent =
+    (isAccounts ? 'Target Accounts' : 'Exec Contacts') + ' — L6M';
+
+  const rows = isAccounts
+    ? STATE.companies.filter(c => c.targetAccount && c.icp === 'ICP_FIT')
+    : STATE.contacts.filter(c => c.targetAccount);
+
+  const data = buildTrends(rows);
+
+  // Show note if only one month of data
+  const noteEl = document.getElementById('trend-note');
+  noteEl.style.display = data.length <= 1 ? 'block' : 'none';
+
+  const svg    = document.getElementById('trend-svg');
+  const bW     = 52, gap = 14, pH = 120, padL = 32;
+  const max    = Math.max(...data.map(d => d.highIntent + d.awareness), 1);
+  const svgW   = data.length * (bW + gap) + padL + 8;
+  svg.setAttribute('width', svgW);
+  svg.setAttribute('height', 160);
+
+  let html = '';
+
+  // Grid lines
+  [0, 0.25, 0.5, 0.75, 1].forEach(p => {
+    const y = pH - pH * p;
+    html += `<line x1="${padL}" x2="${svgW - 8}" y1="${y}" y2="${y}" stroke="#e7e7e7" stroke-width="0.5"/>`;
+    html += `<text x="${padL - 4}" y="${y + 4}" font-size="10" text-anchor="end" fill="#909090">${Math.round(max * p)}</text>`;
+  });
+
+  data.forEach((d, i) => {
+    const x   = padL + i * (bW + gap);
+    const hiH = (d.highIntent / max) * pH;
+    const awH = (d.awareness  / max) * pH;
+    const has = d.highIntent + d.awareness > 0;
+    const cur = `{month:'${d.month}',key:'${d.key}',highIntent:${d.highIntent},awareness:${d.awareness}}`;
+
+    html += `<g style="cursor:${has ? 'pointer' : 'default'}" onclick="${has ? `handleBarClick(${cur},'combined')` : ''}">`;
+    html += `<rect x="${x}" y="${pH - hiH - awH}" width="${bW}" height="${awH}" fill="#7cdac5" opacity="${has ? 1 : 0.3}"/>`;
+    html += `<rect x="${x}" y="${pH - hiH}" width="${bW}" height="${Math.max(hiH, 0.5)}" fill="#117c65" rx="2" opacity="${has ? 1 : 0.3}"/>`;
+    if (has) html += `<rect x="${x}" y="0" width="${bW}" height="${pH}" fill="transparent"/>`;
+    html += `<text x="${x + bW/2}" y="${pH + 14}" font-size="11" text-anchor="middle" fill="#4f5f5b">${d.month}</text>`;
+    html += `</g>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ── SNAPSHOT BARS ─────────────────────────────────────────────────────────────
+function renderSnapshotBars(latestC, latestCt, kpi) {
+  const isAccounts = STATE.activeView === 'accounts';
+  const container  = document.getElementById('snapshot-bars');
+
+  const segs = isAccounts
+    ? [
+        { label: 'High Intent', count: kpi.acctHI, color: '#117c65', seg: 'highIntent' },
+        { label: 'Awareness',   count: kpi.acctAw, color: '#7cdac5', seg: 'awareness'  },
+        { label: 'Cold',        count: latestC.filter(c => c.intent === 'Cold').length, color: '#b8cbc6', seg: 'cold' },
+      ]
+    : [
+        { label: 'High Intent', count: kpi.contHI, color: '#117c65', seg: 'highIntent' },
+        { label: 'Awareness',   count: kpi.contAw, color: '#7cdac5', seg: 'awareness'  },
+      ];
+
+  const total = isAccounts ? latestC.length : latestCt.length;
+
+  container.innerHTML = segs.map(s => {
+    const pct = total > 0 ? Math.round((s.count / total) * 100) : 0;
+    return `
+      <div class="prog-row" onclick="handleSegClick('${s.seg}')">
+        <div class="prog-head">
+          <span>${s.label}</span>
+          <span>${s.count}</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" style="width:${pct}%;background:${s.color};"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── RANK CHART ────────────────────────────────────────────────────────────────
+function renderRankChart(latestC) {
+  const data  = buildRankData(latestC);
+  const svg   = document.getElementById('rank-svg');
+  const bW    = 60, gap = 20, pH = 120, padL = 32;
+  const max   = Math.max(...data.map(d => d.highIntent + d.awareness + d.cold), 1);
+  const svgW  = data.length * (bW + gap) + padL + 8;
+  svg.setAttribute('width', svgW);
+  svg.setAttribute('height', 180);
+
+  let html = '';
+
+  [0, 0.25, 0.5, 0.75, 1].forEach(p => {
+    const y = pH - pH * p;
+    html += `<line x1="${padL}" x2="${svgW - 8}" y1="${y}" y2="${y}" stroke="#e7e7e7" stroke-width="0.5"/>`;
+    html += `<text x="${padL - 4}" y="${y + 4}" font-size="10" text-anchor="end" fill="#909090">${Math.round(max * p)}</text>`;
+  });
+
+  data.forEach((d, i) => {
+    const x   = padL + i * (bW + gap);
+    const hiH = (d.highIntent / max) * pH;
+    const awH = (d.awareness  / max) * pH;
+    const coH = (d.cold       / max) * pH;
+    const tot = d.highIntent + d.awareness + d.cold;
+
+    html += `<rect x="${x}" y="${pH - hiH - awH - coH}" width="${bW}" height="${coH}" fill="#b8cbc6" style="cursor:pointer" onclick="handleRankClick('${d.rank}','cold')"/>`;
+    html += `<rect x="${x}" y="${pH - hiH - awH}" width="${bW}" height="${awH}" fill="#7cdac5" style="cursor:pointer" onclick="handleRankClick('${d.rank}','awareness')"/>`;
+    html += `<rect x="${x}" y="${pH - hiH}" width="${bW}" height="${Math.max(hiH, 0.5)}" fill="#117c65" rx="2" style="cursor:pointer" onclick="handleRankClick('${d.rank}','highIntent')"/>`;
+    html += `<text x="${x + bW/2}" y="${pH + 16}" font-size="12" text-anchor="middle" fill="#384d49" font-weight="600">Rank ${d.rank}</text>`;
+    html += `<text x="${x + bW/2}" y="${pH + 30}" font-size="10" text-anchor="middle" fill="#909090">${tot} accts</text>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ── RANK A LIST ───────────────────────────────────────────────────────────────
+function renderRankAList(latestC) {
+  const items = latestC.filter(c => c.rank === 'A' && c.intent === 'High Intent');
+  const el    = document.getElementById('rank-a-list');
+
+  if (!items.length) {
+    el.innerHTML = '<div class="loading-msg">No data yet.</div>';
+    return;
+  }
+
+  el.innerHTML = items.map(a => `
+    <div class="rank-item">
+      <div>
+        <div class="rank-item-name">${esc(a.name)}</div>
+        <div class="rank-item-meta">${esc(a.owner || 'Unassigned')} · Score ${a.score}</div>
+      </div>
+      <div class="rank-item-right">
+        ${a.qualDeals > 0 ? '<span class="badge badge-deal">Open Deal</span>' : ''}
+        ${a.type === 'Customer' ? '<span class="badge badge-cust">Customer</span>' : ''}
+        <a class="hs-link" href="https://app.hubspot.com/contacts/20treeai/company/${esc(a.id)}" target="_blank" rel="noopener">HubSpot →</a>
+      </div>
+    </div>`).join('');
+}
+
+// ── TAB / VIEW SWITCHING ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  STATE.activeTab = tab;
+  ['trends','gtm','priority'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? (t === 'priority' ? 'block' : 'grid') : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['trends','gtm','priority'][i] === tab);
+  });
+  document.getElementById('view-toggle').style.display = tab === 'priority' ? 'none' : 'flex';
+
+  if (tab === 'priority' && !STATE.aiRec) fetchAiRecs();
+}
+
+function switchView(view) {
+  STATE.activeView = view;
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().includes(view === 'accounts' ? 'account' : 'exec'));
+  });
+  const lC  = getLatestCompanies();
+  const lCt = getLatestContacts();
+  const kpi = {
+    acctHI: lC.filter(c => c.intent === 'High Intent').length,
+    acctAw: lC.filter(c => c.intent === 'Awareness').length,
+    contHI: lCt.filter(c => c.intent === 'High Intent').length,
+    contAw: lCt.filter(c => c.intent === 'Awareness').length,
+  };
+  renderTrendChart(lC, lCt);
+  renderSnapshotBars(lC, lCt, kpi);
+}
+
+// ── CLICK HANDLERS ────────────────────────────────────────────────────────────
+function handleBarClick(barData, segment) {
+  const lC  = getLatestCompanies();
+  const lCt = getLatestContacts();
+  const intentFilter = segment === 'combined' ? null
+    : segment === 'highIntent' ? 'High Intent'
+    : segment === 'awareness'  ? 'Awareness'
+    : 'Cold';
+
+  if (STATE.activeView === 'accounts') {
+    const pool  = lC;
+    const items = intentFilter ? pool.filter(c => c.intent === intentFilter)
+      : pool.filter(c => c.intent === 'High Intent' || c.intent === 'Awareness');
+    openDrawer(items, (intentFilter || 'Engaged') + ' Accounts', 'accounts');
+  } else {
+    const items = intentFilter ? lCt.filter(c => c.intent === intentFilter)
+      : lCt.filter(c => c.intent !== 'Cold');
+    openDrawer(items, (intentFilter || 'Engaged') + ' Exec Contacts', 'execs');
+  }
+}
+
+function handleSegClick(seg) {
+  handleBarClick({}, seg);
+}
+
+function handleRankClick(rank, segment) {
+  const lC    = getLatestCompanies();
+  const pool  = lC.filter(c => c.rank === rank);
+  const intentFilter = segment === 'highIntent' ? 'High Intent'
+    : segment === 'awareness' ? 'Awareness' : 'Cold';
+  const items = pool.filter(c => c.intent === intentFilter);
+  openDrawer(items, `Rank ${rank} — ${intentFilter} Accounts`, 'accounts');
+}
+
+function viewAllHighIntent() {
+  const isAcc = STATE.activeView === 'accounts';
+  if (isAcc) {
+    openDrawer(getLatestCompanies().filter(c => c.intent === 'High Intent'), 'All High Intent Accounts', 'accounts');
+  } else {
+    openDrawer(getLatestContacts().filter(c => c.intent === 'High Intent'), 'All High Intent Contacts', 'execs');
+  }
+}
+
+// ── DRAWER ────────────────────────────────────────────────────────────────────
+function openDrawer(items, title, view) {
+  document.getElementById('drawer-title').textContent = title;
+  document.getElementById('drawer-count').textContent =
+    items.length + ' ' + (view === 'accounts' ? 'accounts' : 'contacts');
+
+  const body = document.getElementById('drawer-body');
+
+  if (!items.length) {
+    body.innerHTML = '<div class="drawer-empty">No matching records.</div>';
+  } else if (view === 'accounts') {
+    body.innerHTML = items.map(a => `
+      <div class="drawer-row">
+        <div class="drawer-left">
+          <div class="drawer-name">${esc(a.name)}</div>
+          <div class="drawer-badges">
+            <span class="badge ${a.intent === 'High Intent' ? 'badge-hi' : a.intent === 'Awareness' ? 'badge-aw' : 'badge-cold'}">${esc(a.intent)}</span>
+            ${a.rank ? `<span class="badge badge-rank">Rank ${a.rank}</span>` : ''}
+            ${a.type === 'Customer' ? '<span class="badge badge-cust">Customer</span>' : ''}
+            ${a.qualDeals > 0 ? `<span class="badge badge-deal">${a.qualDeals} Qual. Deal${a.qualDeals > 1 ? 's' : ''}</span>` : ''}
+          </div>
+          <div class="drawer-meta">Owner: ${esc(a.owner || 'Unassigned')} · Score: ${a.score}</div>
+        </div>
+        <a class="hs-link" href="https://app.hubspot.com/contacts/20treeai/company/${esc(a.id)}" target="_blank" rel="noopener">HubSpot →</a>
+      </div>`).join('');
+  } else {
+    body.innerHTML = items.map(c => `
+      <div class="drawer-row">
+        <div class="drawer-left">
+          <div class="drawer-name">${esc(c.name)}</div>
+          <div class="drawer-job">${esc(c.title)}</div>
+          <div class="drawer-badges">
+            <span class="badge ${c.intent === 'High Intent' ? 'badge-hi' : 'badge-aw'}">${esc(c.intent)}</span>
+            ${c.titleGroup ? `<span class="badge badge-vp">${esc(c.titleGroup)}</span>` : ''}
+          </div>
+          <div class="drawer-meta">${esc(c.company)}</div>
+        </div>
+        <a class="hs-link" href="https://app.hubspot.com/contacts/20treeai/contact/${esc(c.id)}" target="_blank" rel="noopener">HubSpot →</a>
+      </div>`).join('');
+  }
+
+  document.getElementById('overlay').style.display = 'block';
+  document.getElementById('drawer').style.display  = 'flex';
+}
+
+function closeDrawer() {
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('drawer').style.display  = 'none';
+}
+
+// ── AI RECOMMENDATIONS ────────────────────────────────────────────────────────
+async function fetchAiRecs() {
+  document.getElementById('ai-prompt').style.display  = 'none';
+  document.getElementById('ai-results').style.display = 'none';
+  document.getElementById('ai-loading').style.display = 'block';
+
+  const latestC  = getLatestCompanies();
+  const latestCt = getLatestContacts();
+
+  const hiNoDeals = latestC
+    .filter(c => c.intent === 'High Intent' && c.qualDeals === 0 && c.type !== 'Customer')
+    .sort((a, b) => b.score - a.score).slice(0, 10);
+
+  const rankSummary = ['A','B','C','D'].map(r => {
+    const g = latestC.filter(c => c.rank === r);
+    return `Rank ${r}: ${g.filter(c=>c.intent==='High Intent').length} HI, ${g.filter(c=>c.intent==='Awareness').length} Awareness, ${g.filter(c=>c.intent==='Cold').length} Cold`;
+  }).join('\n');
+
+  const acctList = hiNoDeals.map(c =>
+    `- ${c.name} (Rank ${c.rank||'?'}, score ${c.score}, owner: ${c.owner||'unassigned'})`
+  ).join('\n');
+
+  const contList = latestCt.filter(c => c.intent === 'High Intent').slice(0, 8)
+    .map(c => `- ${c.name}, ${c.title} @ ${c.company}`).join('\n');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        messages: [{ role: 'user', content:
+`You are a GTM strategist for Overstory, an AI-powered vegetation intelligence platform selling to investor-owned utilities.
+
+Analyze this live account engagement data and produce 5 prioritized outreach recommendations.
+Exclude accounts where type = Customer or # of open qualified deals > 0.
+
+GTM Rank summary (latest snapshot, ICP_FIT target accounts):
+${rankSummary}
+
+High Intent accounts with NO open qualified deals (sorted by score):
+${acctList || 'None'}
+
+High Intent VP/C-Suite exec contacts:
+${contList || 'None'}
+
+Rules:
+- Prioritize Rank A > B > C but flag rank mismatches (high intent in low rank = hidden gem)
+- Separate Marketing plays (content, nurture, events) from AE plays (outreach, discovery calls)
+- Name specific accounts from the data above
+- Be direct and tactical — no fluff
+
+Return ONLY a valid JSON array, no markdown fences:
+[{"title":"...","type":"Marketing"|"AE"|"Both","priority":"High"|"Medium","accounts":["..."],"rationale":"...","action":"..."}]`
+        }],
+      }),
+    });
+
+    const data = await res.json();
+    const text = (data.content?.[0]?.text || '[]').replace(/```json|```/g, '').trim();
+    STATE.aiRec = JSON.parse(text);
+    renderAiRecs();
+  } catch(e) {
+    STATE.aiRec = [];
+    renderAiRecs();
+  }
+}
+
+function renderAiRecs() {
+  document.getElementById('ai-loading').style.display = 'none';
+
+  if (!STATE.aiRec || !STATE.aiRec.length) {
+    document.getElementById('ai-prompt').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('ai-results').style.display = 'block';
+  document.getElementById('ai-grid').innerHTML = STATE.aiRec.map(rec => `
+    <div class="ai-card">
+      <div class="ai-card-title">${esc(rec.title)}</div>
+      <div class="ai-badges">
+        <span class="badge ${rec.priority === 'High' ? 'priority-hi' : 'priority-md'}">${esc(rec.priority)} Priority</span>
+        <span class="badge badge-type">${esc(rec.type)}</span>
+      </div>
+      <div class="ai-rationale">${esc(rec.rationale)}</div>
+      <div class="ai-action-box">
+        <div class="ai-action-label">Recommended Action</div>
+        <div class="ai-action-text">${esc(rec.action)}</div>
+      </div>
+      ${rec.accounts && rec.accounts.length ? `
+        <div class="ai-accts">
+          ${rec.accounts.map(a => `<span class="ai-acct-pill">${esc(a)}</span>`).join('')}
+        </div>` : ''}
+    </div>`).join('');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function showErr(el, msg) {
+  el.innerHTML = msg;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
