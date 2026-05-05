@@ -42,29 +42,6 @@ html,body{height:100%;font-family:var(--fb);background:var(--s2);color:var(--sag
 .btn-nav{background:none;border:1px solid var(--t5);color:#fff;border-radius:4px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--fb);}
 .btn-ghost-nav{background:none;border:none;color:var(--t3);font-size:12px;cursor:pointer;font-family:var(--fb);}
 
-/* ── Config ── */
-#config-wrap{max-width:560px;margin:48px auto;padding:0 24px;}
-.config-card{background:var(--s0);border:1px solid var(--sage2);border-radius:8px;padding:32px;}
-.config-title{font-family:var(--fd);font-size:22px;font-weight:600;color:var(--sage9);margin-bottom:6px;}
-.config-sub{font-size:13px;color:var(--sage6);margin-bottom:28px;line-height:1.7;}
-.field{margin-bottom:18px;}
-.field label{font-size:13px;font-weight:600;color:var(--sage9);display:block;margin-bottom:5px;}
-.field-hint{font-size:12px;color:var(--g5);margin-bottom:7px;line-height:1.5;}
-.field input{
-  width:100%;padding:10px 12px;border:1px solid var(--sage3);border-radius:8px;
-  font-size:13px;font-family:var(--fb);color:var(--sage9);outline:none;background:var(--s0);
-}
-.field input:focus{border-color:var(--t7);box-shadow:0 0 0 3px rgba(17,124,101,.12);}
-code{background:var(--s3);padding:1px 5px;border-radius:3px;font-size:11px;font-family:monospace;}
-.err{background:var(--r0);color:var(--r5);border-radius:4px;padding:10px 12px;font-size:13px;margin-bottom:16px;line-height:1.5;display:none;}
-.btn-primary{
-  background:var(--t7);color:#fff;border:none;border-radius:8px;
-  padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;
-  font-family:var(--fb);width:100%;margin-top:4px;
-}
-.btn-primary:hover{background:var(--t6);}
-.info-note{background:var(--t0);border:1px solid var(--t2);border-radius:8px;padding:14px;margin-top:16px;font-size:12px;color:var(--t8);line-height:1.6;}
-
 /* ── Dashboard ── */
 #main{padding:32px;}
 #load-err{background:var(--r0);color:var(--r5);border-radius:8px;padding:14px 16px;margin-bottom:24px;font-size:13px;line-height:1.6;display:none;}
@@ -217,43 +194,12 @@ code{background:var(--s3);padding:1px 5px;border-radius:3px;font-size:11px;font-
     <div class="nav-right">
       <span class="nav-ts" id="nav-ts"></span>
       <button class="btn-nav" id="btn-refresh" onclick="refreshData()" style="display:none;">↻ Refresh</button>
-      <button class="btn-ghost-nav" id="btn-cfg" onclick="showConfig()" style="display:none;">⚙ Config</button>
       <span class="nav-badge">ABM Intelligence</span>
     </div>
   </div>
 
-  <!-- Config screen -->
-  <div id="config-wrap">
-    <div class="config-card">
-      <div class="config-title">Connect your Google Sheet</div>
-      <div class="config-sub">
-        You need the Apps Script web app URL and token from <strong>ABM_Dashboard_Script.gs</strong>.
-        If you haven't deployed the script yet, do that first — it takes about 15 minutes.
-      </div>
-      <div class="field">
-        <label>Apps Script web app URL</label>
-        <div class="field-hint">
-          Apps Script → Deploy → Manage deployments → copy the Web App URL.<br>
-          Looks like: <code>https://script.google.com/macros/s/ABC.../exec</code>
-        </div>
-        <input type="text" id="inp-url" placeholder="https://script.google.com/macros/s/.../exec" />
-      </div>
-      <div class="field">
-        <label>Secret token</label>
-        <div class="field-hint">The value you set as <code>SECRET_TOKEN</code> in the script.</div>
-        <input type="text" id="inp-token" placeholder="overstory-abm-2026" />
-      </div>
-      <div class="err" id="cfg-err"></div>
-      <button class="btn-primary" onclick="saveConfig()">Load Dashboard →</button>
-      <div class="info-note">
-        <strong>Saved in your browser only.</strong> Anyone opening this on a different device sees
-        this screen once, then it remembers. Reset anytime with ⚙ Config in the nav.
-      </div>
-    </div>
-  </div>
-
   <!-- Dashboard -->
-  <div id="dashboard" style="display:none;">
+  <div id="dashboard">
     <div id="main">
 
       <div class="err" id="load-err"></div>
@@ -400,61 +346,22 @@ let STATE = {
   config: null,
 };
 
+// ── CONFIG — hardcoded, no setup required ─────────────────────────────────────
+// After deploying your Apps Script, paste your values here and re-upload to GitHub.
+const SCRIPT_URL = 'https://script.google.com/a/macros/overstory.com/s/AKfycbyQI5NUrJ3NUZy4PUdYKzlBjaoy3tJiatc1-MGUdC7RiXdlsYjRO8VbRGz0_uYus_XANg/exec';
+const TOKEN      = 'overstory-abm';
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 (function init() {
-  try {
-    const saved = localStorage.getItem('abm_config');
-    if (saved) {
-      STATE.config = JSON.parse(saved);
-      showDashboard();
-      loadData();
-      // Auto-refresh every 10 minutes
-      setInterval(loadData, 10 * 60 * 1000);
-    }
-  } catch(e) { /* start fresh */ }
-
+  STATE.config = { scriptUrl: SCRIPT_URL, token: TOKEN };
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('btn-refresh').style.display = 'inline-block';
+  loadData();
+  setInterval(loadData, 10 * 60 * 1000);
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeDrawer();
   });
 })();
-
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-function saveConfig() {
-  const url   = document.getElementById('inp-url').value.trim();
-  const token = document.getElementById('inp-token').value.trim();
-  const errEl = document.getElementById('cfg-err');
-  errEl.style.display = 'none';
-
-  if (!url)   { showErr(errEl, 'Please paste your Apps Script web app URL.'); return; }
-  if (!token) { showErr(errEl, 'Please enter your secret token.'); return; }
-  if (!url.includes('script.google.com')) {
-    showErr(errEl, 'That doesn\'t look like an Apps Script URL. It should start with https://script.google.com/macros/s/...');
-    return;
-  }
-
-  STATE.config = { scriptUrl: url, token };
-  try { localStorage.setItem('abm_config', JSON.stringify(STATE.config)); } catch(e) {}
-  STATE.aiRec = null;
-  showDashboard();
-  loadData();
-  setInterval(loadData, 10 * 60 * 1000);
-}
-
-function showConfig() {
-  STATE.config = null;
-  try { localStorage.removeItem('abm_config'); } catch(e) {}
-  document.getElementById('dashboard').style.display  = 'none';
-  document.getElementById('config-wrap').style.display = 'block';
-  document.getElementById('btn-refresh').style.display = 'none';
-  document.getElementById('btn-cfg').style.display     = 'none';
-}
-
-function showDashboard() {
-  document.getElementById('config-wrap').style.display = 'none';
-  document.getElementById('dashboard').style.display   = 'block';
-  document.getElementById('btn-refresh').style.display = 'inline-block';
-  document.getElementById('btn-cfg').style.display     = 'inline-block';
-}
 
 // ── DATA LOADING ──────────────────────────────────────────────────────────────
 async function loadData() {
@@ -488,7 +395,7 @@ async function loadData() {
     render();
   } catch(e) {
     showErr(errEl, '<strong>Could not load data:</strong> ' + e.message +
-      '<br><span style="font-size:12px;">Check that your Apps Script is deployed and the token matches. Click ⚙ Config to re-enter settings.</span>');
+      '<br><span style="font-size:12px;">Check that your Apps Script is deployed and the SCRIPT_URL and TOKEN values in index.html are correct.</span>');
     errEl.style.display = 'block';
   }
 }
